@@ -1,9 +1,8 @@
 pub mod parser;
 
-use bytes::{BytesMut, BufMut, Buf};
-use std::io::prelude::*;
+use bytes::{BufMut, BytesMut};
 use std::fs::File;
-
+use std::io::prelude::*;
 
 fn main() {
     let mut buffer = BytesMut::with_capacity(1024);
@@ -14,8 +13,7 @@ fn main() {
         let byte = byte_result.unwrap();
 
         buffer.put_u8(byte); // Append next byte to buffer
-        
+
         println!("buffer: {:?}", &buffer);
     }
-
 }
