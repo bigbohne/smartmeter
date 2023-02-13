@@ -1,4 +1,8 @@
-pub mod parser;
+mod parser;
+
+extern crate pest;
+#[macro_use]
+extern crate pest_derive;
 
 use bytes::{BufMut, BytesMut};
 use std::fs::File;
@@ -9,11 +13,25 @@ fn main() {
 
     let file = File::open("data/capture.txt").unwrap();
 
+    let mut capture = false;
     for byte_result in file.bytes() {
         let byte = byte_result.unwrap();
 
-        buffer.put_u8(byte); // Append next byte to buffer
+        if byte == 0x02 {
+            // STX
+            capture = true;
+            continue;
+        }
 
-        println!("buffer: {:?}", &buffer);
+        if byte == 0x03 {
+            // ETX
+            break;
+        }
+
+        if capture {
+            buffer.put_u8(byte); // Append next byte to buffer
+        }
     }
+
+    println!("buffer: {:?}", &buffer);
 }
