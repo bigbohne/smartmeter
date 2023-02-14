@@ -8,12 +8,23 @@ pub struct ResponseParser;
 fn test_parser() {
     assert_eq!(
         parse_obis("32.7.0(227.8*V)"),
-        Some(ObisLine {
+        Ok(ObisLine {
             tag: "32.7.0".to_string(),
             value: 227.8,
             unit: "V".to_string()
         })
-    )
+    );
+
+    assert_eq!(
+        parse_obis("32.7(227567)"),
+        Ok(ObisLine {
+            tag: "32.7".to_string(),
+            value: 227567.0,
+            unit: "".to_string()
+        })
+    );
+
+    assert_eq!(parse_obis("abc(227.8)"), Err(ParserError::General));
 }
 
 #[derive(PartialEq, Debug)]
@@ -23,11 +34,16 @@ pub struct ObisLine {
     unit: String,
 }
 
-pub fn parse_obis(input: &str) -> Option<ObisLine> {
+#[derive(Debug, PartialEq)]
+pub enum ParserError {
+    General,
+}
+
+pub fn parse_obis(input: &str) -> Result<ObisLine, ParserError> {
     let result = ResponseParser::parse(Rule::obis_line, input)
-        .unwrap()
+        .or(Err(ParserError::General))?
         .next()
-        .unwrap();
+        .ok_or(ParserError::General)?;
 
     let mut tag: String = String::default();
     let mut value: f64 = 0.0;
@@ -51,7 +67,7 @@ pub fn parse_obis(input: &str) -> Option<ObisLine> {
         }
     }
 
-    Some(ObisLine {
+    Ok(ObisLine {
         tag: tag,
         value: value,
         unit: unit,
