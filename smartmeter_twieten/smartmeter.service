@@ -1,0 +1,10 @@
+[Service]
+Type=simple
+ExecStart=python3 smartmeter.py
+WorkingDirectory=/home/powermeter/smartmeter
+User=powermeter
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
+
