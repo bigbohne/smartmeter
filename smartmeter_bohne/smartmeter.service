@@ -1,0 +1,9 @@
+[Service]
+Type=simple
+ExecStart=python3 smartmeter.py
+WorkingDirectory=/home/bigbohne/smartmeter
+User=bigbohne
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
