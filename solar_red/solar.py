@@ -1,5 +1,6 @@
 from typing import List
 import requests
+from requests.auth import HTTPBasicAuth
 from flask import Flask
 
 import threading
@@ -8,7 +9,8 @@ import os
 import re
 
 def create_measurement():
-    response: requests.Response = requests.get("http://192.168.2.129/status.html", stream=True, timeout=10)
+    basic = HTTPBasicAuth('admin', 'admin')
+    response: requests.Response = requests.get("http://192.168.2.129/status.html", stream=True, timeout=10, auth=basic)
 
     regex = re.compile('var (\S+) = \"([\d\.]+)\"')
 
