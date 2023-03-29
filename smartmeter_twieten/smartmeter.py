@@ -82,13 +82,13 @@ def create_measurement():
 
 def store_measurement(measurement):
     with open("metrics.tmp", "w") as m:
-        m.write(f'smartmeter_power{{meter="twietenhof" phase="Total"}} {measurement["16.7.0"]} \n')
-        m.write(f'smartmeter_counter{{meter="twietenhof" obis="1.8.0"}} {measurement["1.8.0"] / 10000.0} \n')
-        m.write(f'smartmeter_counter{{meter="twietenhof" obis="1.8.1"}} {measurement["1.8.1"] / 10000.0} \n')
-        m.write(f'smartmeter_counter{{meter="twietenhof" obis="1.8.2"}} {measurement["1.8.2"] / 10000.0} \n')
-        m.write(f'smartmeter_counter{{meter="twietenhof" obis="2.8.0"}} {measurement["2.8.0"] / 10000.0} \n')
-        m.write(f'smartmeter_counter{{meter="twietenhof" obis="2.8.1"}} {measurement["2.8.1"] / 10000.0} \n')
-        m.write(f'smartmeter_counter{{meter="twietenhof" obis="2.8.2"}} {measurement["2.8.2"] / 10000.0} \n')
+        m.write(f'smartmeter_power{{meter="haus" phase="Total"}} {measurement["16.7.0"]} \n')
+        m.write(f'smartmeter_counter{{meter="haus" obis="1.8.0"}} {measurement["1.8.0"] / 10000.0} \n')
+        m.write(f'smartmeter_counter{{meter="haus" obis="1.8.1"}} {measurement["1.8.1"] / 10000.0} \n')
+        m.write(f'smartmeter_counter{{meter="haus" obis="1.8.2"}} {measurement["1.8.2"] / 10000.0} \n')
+        m.write(f'smartmeter_counter{{meter="haus" obis="2.8.0"}} {measurement["2.8.0"] / 10000.0} \n')
+        m.write(f'smartmeter_counter{{meter="haus" obis="2.8.1"}} {measurement["2.8.1"] / 10000.0} \n')
+        m.write(f'smartmeter_counter{{meter="haus" obis="2.8.2"}} {measurement["2.8.2"] / 10000.0} \n')
 
     os.rename("metrics.tmp", "metrics")
         
