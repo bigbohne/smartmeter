@@ -5,6 +5,7 @@ Description=MQTT Prometheus Export
 User=grafana
 WorkingDirectory=/home/grafana/mqttexporter
 ExecStart=/home/grafana/mqttexporter/venv/bin/python3 exporter.py
+TimeoutSec=10
 
 [Install]
 WantedBy=multi-user.target
