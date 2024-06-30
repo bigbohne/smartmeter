@@ -1,4 +1,4 @@
-import serial
+#import serial
 import io
 import re
 import dataclasses
@@ -7,7 +7,8 @@ import time
 from flask import Flask
 import os
 import threading
-import functools
+import socket
+import paho.mqtt.client as mqtt
 
 @dataclasses.dataclass
 class ObisValue():
@@ -15,8 +16,13 @@ class ObisValue():
     value: float
 
 def read_meter(command):
-    ser = serial.serial_for_url('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN, bytesize=serial.SEVENBITS, timeout=10)
-    sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
+    #ser = serial.serial_for_url('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN, bytesize=serial.SEVENBITS, timeout=10)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    
+    sock.connect(('192.168.2.247', 23))
+    sock.setblocking(True)
+    
+    sio = io.TextIOWrapper(socket.SocketIO(sock, mode='rwb'))
+    #sio = io.TextIOWrapper(io.BufferedRWPair(sock.makefile('rb'), sock.makefile('wb')))
 
     sio.write(command)
     sio.flush()
@@ -31,7 +37,8 @@ def read_meter(command):
     while True:
         line = sio.readline().strip()
         if len(line) == 0 or line[0] == '!':
-            ser.close()
+            #ser.close()
+            sock.close()
             return
 
         match = reg.match(line)
@@ -106,6 +113,24 @@ def store_measurement(measurement: Measurement):
         m.write(f'smartmeter_frequency{{meter="boffi_oben"}} {measurement.frequency.value} \n')
 
     os.rename("metrics.tmp", "metrics")
+
+
+def publish_to_mqtt(measurement: Measurement):
+    mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    mqttc.connect("192.168.2.244")
+
+    mqttc.publish("smartmeter/boffi_oben/power/Total", measurement.PTotal.value)
+    mqttc.publish("smartmeter/boffi_oben/power/L1", measurement.PL1.value)
+    mqttc.publish("smartmeter/boffi_oben/power/L2", measurement.PL2.value)
+    mqttc.publish("smartmeter/boffi_oben/power/L3", measurement.PL3.value)
+
+    mqttc.publish("smartmeter/boffi_oben/counter/1.8.0", measurement.counter1.value)
+    mqttc.publish("smartmeter/boffi_oben/counter/1.8.1", measurement.counter2.value)
+    mqttc.publish("smartmeter/boffi_oben/counter/1.8.2", measurement.counter3.value)
+
+    mqttc.publish("smartmeter/boffi_oben/frequency", measurement.frequency.value)
+    mqttc.disconnect()
+
 
 def clear_metrics():
     with open("metrics", "w") as thefile:
