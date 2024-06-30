@@ -1,0 +1,10 @@
+[Unit]
+Description=MQTT Prometheus Export 
+
+[Service]
+User=grafana
+WorkingDirectory=/home/grafana/mqttexporter
+ExecStart=/home/grafana/mqttexporter/venv/bin/python3 exporter.py
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,0 @@
-tag = { (ASCII_DIGIT+) ~ "." ~ (ASCII_DIGIT+) ~ ("." ~ ASCII_DIGIT+)? }
-unit = {CASED_LETTER+}
-number = { NUMBER+ ~ ("." ~ NUMBER+)? }
-value = { number ~ ("*" ~ unit)? }
-obis_line = { tag ~ "(" ~ value ~ ")" }
