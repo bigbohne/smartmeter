@@ -1,22 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/simonvetter/modbus"
 )
 
 type ModbusParameters struct {
-	ip   string
-	port uint16
+	url string
 }
 
 func readModbusMeter(params ModbusParameters) (measurement Measurement, err error) {
 	var client *modbus.ModbusClient
 
 	client, err = modbus.NewClient(&modbus.ClientConfiguration{
-		URL:     fmt.Sprintf("tcp://%s:%d", params.ip, params.port),
+		URL:     params.url,
 		Timeout: 1 * time.Second,
 	})
 

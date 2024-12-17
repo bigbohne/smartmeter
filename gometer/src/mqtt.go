@@ -13,11 +13,12 @@ type MQTTClient struct {
 
 type MQTTClientParams struct {
 	name string
+	url  string
 }
 
 func CreateMQTTClient(params MQTTClientParams) (mqttclient *MQTTClient, err error) {
 	var will_topic = fmt.Sprintf("smartmeter/%s/connected", params.name)
-	var options = mqtt.NewClientOptions().AddBroker("tcp://192.168.2.244:1883").SetClientID(fmt.Sprintf("gometer-%s", params.name)).SetWill(will_topic, "0", 0, false)
+	var options = mqtt.NewClientOptions().AddBroker(params.url).SetClientID(fmt.Sprintf("gometer-%s", params.name)).SetWill(will_topic, "0", 0, false)
 	var client = mqtt.NewClient(options)
 	var t = client.Connect()
 	if t.Wait() && t.Error() != nil {
