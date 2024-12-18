@@ -2,53 +2,61 @@ package main
 
 import (
 	"log"
-	"maps"
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
 )
 
 var (
-	metertype = kingpin.Flag("type", "Type of Smartmeter [\"modbustcp\"]").Required().Envar("GOMETER_TYPE").String()
+	metertype = kingpin.Flag("type", "Type of Smartmeter [\"modbustcp\", \"iec62056\"]").Required().Envar("GOMETER_TYPE").String()
+	metername = kingpin.Flag("name", "Name of Smartmeter").Required().Envar("GOMETER_NAME").String()
 	interval  = kingpin.Flag("interval", "Interval of measurements in seconds").Default("15").Int()
 	mqtturl   = kingpin.Flag("mqtt", "URL of MQTT Server").String()
-	modbusurl = kingpin.Flag("modbus", "Modbus Address of the Smartmeter").String()
+	urlinput  = kingpin.Flag("url", "Address of the Smartmeter").String()
 )
 
 func main() {
 	kingpin.Parse()
 
-	data1, _ := readObisMeter("192.168.2.247:23", "/?!\r\n")
-	data2, _ := readObisMeter("192.168.2.247:23", "/2!\r\n")
-	maps.Copy(data1, data2)
-
-	log.Println(data1)
-	return
+	// Create initial test measurement
+	_, errMeasurement := createMeasurement(MeasurementSettings{
+		metertype: *metertype,
+		url:       *urlinput})
+	if errMeasurement != nil {
+		log.Fatalln(errMeasurement)
+	}
 
 	var ticker = time.NewTicker(time.Second * time.Duration(*interval))
 
-	var mqttclient, err = CreateMQTTClient(MQTTClientParams{
-		name: "boffi_office",
-		url:  *mqtturl,
-	})
+	var mqttclient *MQTTClient
+	if mqtturl != nil {
+		var err error
+		mqttclient, err = CreateMQTTClient(MQTTClientParams{
+			name: *metername,
+			url:  *mqtturl,
+		})
 
-	if err != nil {
-		log.Fatalln(err)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	for {
 		<-ticker.C
 
-		var measurement, err = readModbusMeter(ModbusParameters{
-			url: *modbusurl,
-		})
+		var measurement, err = createMeasurement(MeasurementSettings{
+			metertype: *metertype,
+			url:       *urlinput})
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		log.Println(measurement)
-		mqttclient.Publish(measurement)
+
+		if mqttclient != nil {
+			mqttclient.Publish(measurement)
+		}
 	}
 
 }

@@ -38,15 +38,15 @@ func CreateMQTTClient(params MQTTClientParams) (mqttclient *MQTTClient, err erro
 	return mqttclient, nil
 }
 
-func (c *MQTTClient) Publish(measurement Measurement) {
+func (c *MQTTClient) Publish(measurement *Measurement) {
 	c.client.Publish(fmt.Sprintf("smartmeter/%s/power/Total", c.name), 0, false, fmt.Sprint(measurement.power_all_phases))
 	c.client.Publish(fmt.Sprintf("smartmeter/%s/power/L1", c.name), 0, false, fmt.Sprint(measurement.power_l1))
 	c.client.Publish(fmt.Sprintf("smartmeter/%s/power/L2", c.name), 0, false, fmt.Sprint(measurement.power_l2))
 	c.client.Publish(fmt.Sprintf("smartmeter/%s/power/L3", c.name), 0, false, fmt.Sprint(measurement.power_l3))
 
-	c.client.Publish(fmt.Sprintf("smartmeter/%s/counter/total", c.name), 0, false, fmt.Sprint(measurement.energy_total))
-	c.client.Publish(fmt.Sprintf("smartmeter/%s/counter/forward", c.name), 0, false, fmt.Sprint(measurement.energy_forward))
-	c.client.Publish(fmt.Sprintf("smartmeter/%s/counter/backward", c.name), 0, false, fmt.Sprint(measurement.energy_backward))
+	for k, v := range measurement.counter {
+		c.client.Publish(fmt.Sprintf("smartmeter/%s/counter/%s", k, c.name), 0, false, fmt.Sprint(v))
+	}
 
 	c.client.Publish(fmt.Sprintf("smartmeter/%s/frequency", c.name), 0, false, fmt.Sprint(measurement.grid_frequency))
 }

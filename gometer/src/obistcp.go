@@ -2,8 +2,11 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"log"
+	"maps"
 	"net"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -12,7 +15,21 @@ import (
 
 type ObisValues map[string]float64
 
-func readObisMeter(ipport string, command string) (ObisValues, error) {
+func readObisMeter(settings MeasurementSettings) (*Measurement, error) {
+	parsedUrl, err := url.ParseRequestURI(settings.url)
+	if err != nil {
+		return nil, err
+	}
+
+	data1, _ := readObisMeterInternal(parsedUrl.Host, "/?!\r\n")
+	data2, _ := readObisMeterInternal(parsedUrl.Host, "/2!\r\n")
+	maps.Copy(data1, data2)
+
+	log.Println(data1)
+	return nil, errors.ErrUnsupported
+}
+
+func readObisMeterInternal(ipport string, command string) (ObisValues, error) {
 	conn, err1 := net.Dial("tcp", ipport)
 	if err1 != nil {
 		return nil, err1
@@ -24,7 +41,7 @@ func readObisMeter(ipport string, command string) (ObisValues, error) {
 
 	conn.Write([]byte(command))
 
-	line, err2 := reader.ReadString(byte('\n'))
+	_, err2 := reader.ReadString(byte('\n'))
 	if err2 != nil {
 		return nil, err2
 	}
@@ -41,7 +58,7 @@ func readObisMeter(ipport string, command string) (ObisValues, error) {
 	data := make(ObisValues)
 
 	for true {
-		line, err2 = reader.ReadString(byte('\n'))
+		line, err2 := reader.ReadString(byte('\n'))
 		if err2 != nil {
 			log.Fatalln(err2)
 		}
