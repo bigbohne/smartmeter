@@ -19,17 +19,19 @@ func main() {
 	kingpin.Parse()
 
 	// Create initial test measurement
-	_, errMeasurement := createMeasurement(MeasurementSettings{
+	measurement, errMeasurement := createMeasurement(MeasurementSettings{
 		metertype: *metertype,
 		url:       *urlinput})
 	if errMeasurement != nil {
 		log.Fatalln(errMeasurement)
 	}
 
+	log.Println(measurement)
+
 	var ticker = time.NewTicker(time.Second * time.Duration(*interval))
 
 	var mqttclient *MQTTClient
-	if mqtturl != nil {
+	if len(*mqtturl) != 0 {
 		var err error
 		mqttclient, err = CreateMQTTClient(MQTTClientParams{
 			name: *metername,

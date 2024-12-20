@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"log"
 	"maps"
 	"net"
@@ -13,7 +12,7 @@ import (
 	"time"
 )
 
-type ObisValues map[string]float64
+type ObisValues map[string]float32
 
 func readObisMeter(settings MeasurementSettings) (*Measurement, error) {
 	parsedUrl, err := url.ParseRequestURI(settings.url)
@@ -21,12 +20,38 @@ func readObisMeter(settings MeasurementSettings) (*Measurement, error) {
 		return nil, err
 	}
 
-	data1, _ := readObisMeterInternal(parsedUrl.Host, "/?!\r\n")
-	data2, _ := readObisMeterInternal(parsedUrl.Host, "/2!\r\n")
+	data1, err := readObisMeterInternal(parsedUrl.Host, "/?!\r\n")
+	if err != nil {
+		return nil, err
+	}
+
+	data2, err := readObisMeterInternal(parsedUrl.Host, "/2!\r\n")
+	if err != nil {
+		return nil, err
+	}
+
+	measurement, _ := createObisMeasurement(data1, data2)
+
+	return measurement, nil
+}
+
+func createObisMeasurement(data1 ObisValues, data2 ObisValues) (*Measurement, error) {
 	maps.Copy(data1, data2)
 
-	log.Println(data1)
-	return nil, errors.ErrUnsupported
+	measurement := &Measurement{}
+
+	measurement.power_all_phases = data1["1.7.0"]
+	measurement.power_l1 = data1["21.7.0"]
+	measurement.power_l2 = data1["41.7.0"]
+	measurement.power_l3 = data1["61.7.0"]
+	measurement.grid_frequency = data1["34.7"]
+
+	measurement.counter = make(map[string]float32)
+	measurement.counter["1.8.0"] = data1["1.8.0"]
+	measurement.counter["1.8.1"] = data1["1.8.1"]
+	measurement.counter["1.8.2"] = data1["1.8.2"]
+
+	return measurement, nil
 }
 
 func readObisMeterInternal(ipport string, command string) (ObisValues, error) {
@@ -64,7 +89,7 @@ func readObisMeterInternal(ipport string, command string) (ObisValues, error) {
 		}
 
 		line = strings.TrimSpace(line)
-		log.Println(line)
+		//log.Println(line)
 
 		if line[0] == '!' {
 			break
@@ -84,7 +109,7 @@ func readObisMeterInternal(ipport string, command string) (ObisValues, error) {
 		obis := findings[1]
 		value, _ := strconv.ParseFloat(findings[2], 64)
 
-		data[obis] = value
+		data[obis] = float32(value)
 	}
 
 	return data, nil
