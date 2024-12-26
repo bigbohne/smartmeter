@@ -11,8 +11,8 @@ var (
 	metertype = kingpin.Flag("type", "Type of Smartmeter [\"modbustcp\", \"iec62056\"]").Required().Envar("GOMETER_TYPE").String()
 	metername = kingpin.Flag("name", "Name of Smartmeter").Required().Envar("GOMETER_NAME").String()
 	interval  = kingpin.Flag("interval", "Interval of measurements in seconds").Default("15").Int()
-	mqtturl   = kingpin.Flag("mqtt", "URL of MQTT Server").String()
-	urlinput  = kingpin.Flag("url", "Address of the Smartmeter").String()
+	mqtturl   = kingpin.Flag("mqtt", "URL of MQTT Server").Envar("GOMETER_MQTTURL").String()
+	urlinput  = kingpin.Flag("url", "Address of the Smartmeter").Envar("GOMETER_URL").String()
 )
 
 func main() {
